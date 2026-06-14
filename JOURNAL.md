@@ -379,3 +379,51 @@ gap (need Roboflow Hip/Humerus).
 ### Status: v3 trained, evaluated, site regenerated, staged for commit.
 ### Next: commit v3 (user pushes); then Roboflow Hip/Humerus for the remaining
 blind spots + AO/OTA typing track (data now identified in dataset.csv).
+
+---
+
+## Entry 007 — 2026-06-14 — v4: HUMERUS closes the shoulder gap
+
+### Data
+Added HUMERUS (Roboflow, 1,420 typed-fracture images, all classes→fracture via
+new `ingest_grazpedwri.py --all-fracture`). Rejected the "hip" Roboflow set —
+it was **osteoporosis**, not hip fractures. Merged → `dataset_v4`
+(5,926 / 1,184 / 789). Found a GENUINE hip set for later (Roboflow proximal-femur).
+
+### v4 results (YOLOv8m, early-stop ep 116, best 71)
+| Metric (test) | v3 | v4 |
+|---|---|---|
+| mAP@0.5 | 0.761 | **0.858** |
+| mAP@0.5:0.95 | 0.369 | **0.479** |
+| image-level sensitivity | 0.812 | **0.927** |
+| specificity | 0.980 | 0.975 |
+| PPV | 0.961 | 0.973 |
+| max achievable recall | 0.875 | **0.895** |
+
+### Per-source sensitivity — the shoulder gap CLOSED
+| source | n (test) | pos | sensitivity |
+|---|---|---|---|
+| **humerus (shoulder region)** | 141 | 141 | **0.986** |
+| wrist (GRAZPEDWRI) | 248 | 178 | 0.961 |
+| FracAtlas-native | 400 | 66 | 0.712 |
+
+The HUMERUS addition did exactly its job: humerus fractures now detected at 98.6%
+(was a blind spot in v1-v3). FracAtlas-native also rose (0.56→0.71) from more data.
+
+### Honest caveats
+- The headline 0.927 sensitivity is **inflated by easy humerus/wrist** distributions;
+  the harder FracAtlas-native fractures sit at 0.712 — that's the real-world number.
+- **Hip still barely evaluable** (2 test positives, caught 1). True hip fractures
+  remain the open gap → Roboflow proximal-femur (v5).
+- A per-source eval bug bit me first: HUMERUS filenames contain "...-Img1.rf..."
+  so an "IMG" substring check mis-tagged them as FracAtlas. Fixed the tag
+  (rf. = Roboflow; WRI = wrist, else humerus).
+
+### Decisions
+- **Shipped model is now `fracture_yolov8m_v4`.** Site overlay + README + MODEL_CARD
+  updated to v4.
+- Stratified split (`--stratify`, built this session) should be used for v5 so
+  hip/shoulder are properly represented.
+
+### Next: train the typing classifier (train_typing.py ready); acquire proximal-femur
+for the hip gap; consider full 20k GRAZPEDWRI for more wrist headroom.

@@ -1,43 +1,32 @@
 {
-  "image": "000033_IMG0002382.png",
-  "width": 373,
-  "height": 454,
+  "image": "000022_IMG0002414.png",
+  "width": 454,
+  "height": 373,
   "models": {
     "yolov8": {
       "color": "#00c800",
       "boxes": [
         {
           "xyxy": [
-            302.6,
-            159.9,
-            313.3,
-            179.7
+            217.4,
+            167.9,
+            256.9,
+            192.1
           ],
-          "conf": 0.7243,
+          "conf": 0.7172,
           "type": "localized/simple (best guess)",
           "severity": "moderate (best guess)"
         },
         {
           "xyxy": [
-            272.2,
-            168.7,
-            286.2,
-            181.7
+            216.2,
+            154.8,
+            257.1,
+            192.7
           ],
-          "conf": 0.7081,
+          "conf": 0.3643,
           "type": "localized/simple (best guess)",
-          "severity": "moderate (best guess)"
-        },
-        {
-          "xyxy": [
-            75.6,
-            177.5,
-            94.7,
-            196.6
-          ],
-          "conf": 0.6958,
-          "type": "localized/simple (best guess)",
-          "severity": "moderate (best guess)"
+          "severity": "low (best guess)"
         }
       ]
     },
@@ -46,36 +35,36 @@
       "boxes": [
         {
           "xyxy": [
-            74.7,
-            175.8,
-            94.5,
-            198.6
+            229.5,
+            169.0,
+            255.4,
+            187.7
           ],
-          "conf": 0.9118,
-          "type": "localized/simple (best guess)",
-          "severity": "high (best guess)"
-        },
-        {
-          "xyxy": [
-            272.9,
-            165.6,
-            285.8,
-            183.4
-          ],
-          "conf": 0.8331,
+          "conf": 0.82,
           "type": "localized/simple (best guess)",
           "severity": "moderate (best guess)"
         },
         {
           "xyxy": [
-            301.3,
-            160.2,
-            313.6,
-            178.8
+            216.3,
+            173.3,
+            246.6,
+            190.8
           ],
-          "conf": 0.7925,
+          "conf": 0.7643,
           "type": "localized/simple (best guess)",
           "severity": "moderate (best guess)"
+        },
+        {
+          "xyxy": [
+            218.5,
+            174.8,
+            235.2,
+            191.4
+          ],
+          "conf": 0.4533,
+          "type": "localized/simple (best guess)",
+          "severity": "low (best guess)"
         }
       ]
     },
@@ -84,34 +73,23 @@
       "boxes": [
         {
           "xyxy": [
-            272.4,
-            167.1,
-            285.4,
-            183.4
+            234.3,
+            167.4,
+            256.2,
+            188.9
           ],
-          "conf": 0.9992,
+          "conf": 0.9995,
           "type": "localized/simple (best guess)",
           "severity": "high (best guess)"
         },
         {
           "xyxy": [
-            75.5,
-            174.6,
-            94.8,
-            199.7
+            217.7,
+            175.8,
+            234.8,
+            192.6
           ],
-          "conf": 0.9992,
-          "type": "localized/simple (best guess)",
-          "severity": "high (best guess)"
-        },
-        {
-          "xyxy": [
-            300.2,
-            158.2,
-            314.1,
-            179.7
-          ],
-          "conf": 0.9991,
+          "conf": 0.999,
           "type": "localized/simple (best guess)",
           "severity": "high (best guess)"
         }

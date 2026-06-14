@@ -24,9 +24,14 @@ the gains are reported honestly, including *where they did and didn't land*.
 |---|---|---|---|---|---|
 | v1-baseline (v8s) | FracAtlas | 0.27 | — | — | — |
 | v1 (v8m, harmonized) | FracAtlas | 0.46 | 0.561 | 0.988 | 0.797 |
-| **v3 (v8m + GRAZPEDWRI)** | FracAtlas + wrist | **0.76** | **0.812** | 0.980 | **0.875** |
+| v3 (v8m + GRAZPEDWRI) | + wrist | 0.76 | 0.812 | 0.980 | 0.875 |
+| **v4 (v8m + HUMERUS)** | + shoulder | **0.86** | **0.927** | 0.975 | **0.895** |
 
-v3 PPV **0.961** (TP 198 / FP 8 / TN 395 / FN 46 on 647 test images).
+v4 PPV **0.973** (TP 357 / FP 10 / TN 394 / FN 28 on 789 test images).
+
+**Per-source sensitivity (v4)** — gains are region-specific, reported honestly:
+humerus/shoulder **0.986**, wrist 0.961, **FracAtlas-native 0.712** (the realistic
+in-the-wild number; the headline is lifted by the easier wrist/humerus sets).
 
 **Backbone study** (separate apples-to-apples comparison on `dataset_v2`, all
 three trained + tested on identical data):
@@ -38,12 +43,16 @@ three trained + tested on identical data):
 | RetinaNet R50-FPNv2 | 0.240 | 0.072 | 0.188 |
 
 **Honest limitations** (full analysis in [JOURNAL.md](JOURNAL.md)):
-- The v3 jump is **largely wrist-driven** — GRAZPEDWRI is wrist-only, and its
-  region carries 0.879 sensitivity vs FracAtlas hand 0.705 / leg 0.538.
-- **Hip and shoulder remain unevaluable** (0 fractured test cases) and unimproved
-  — they need targeted data (Roboflow Hip/Humerus), not more wrist images.
-- Recall still cannot be pushed past **0.875**; ≥0.90 sensitivity needs more
+- Gains are **region-specific**: v4 detects humerus (0.986) and wrist (0.961)
+  fractures far better than FracAtlas-native ones (**0.712**) — the headline
+  sensitivity is lifted by the easier added distributions.
+- **Hip is still the open blind spot** — only 2 fractured test cases (caught 1).
+  The "hip" Roboflow set turned out to be *osteoporosis*; a genuine hip-fracture
+  set (Roboflow proximal-femur) is identified for the next data pass.
+- Recall still cannot be pushed past **0.895**; ≥0.95 sensitivity needs more
   region-diverse boxed data.
+- Wrist data (GRAZPEDWRI) is **pediatric** — an age-distribution skew vs adult
+  X-rays.
 - A MURA abnormality-classifier ensemble was tested and **rejected** — it traded
   specificity (0.99 → 0.87) for nothing, since MURA "abnormal" ≠ fracture
   (a studied negative result, Entry 004).

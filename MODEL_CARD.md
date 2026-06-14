@@ -275,4 +275,15 @@ This model outputs **probabilistic best-guess estimates**, not medical diagnoses
 - Notes MURA ensemble rejection as a documented negative result
 - Recommends data sourcing priorities and external validation before deployment
 
-**Next: v4 metrics and per-region sensitivity breakdown from updated test split (when training completes).**
+### Pass 2 — 2026-06-14 (v4 shipped)
+- **Shipped model is now v4** (`fracture_yolov8m_v4`): + HUMERUS (shoulder),
+  `dataset_v4` (5,926/1,184/789).
+- v4 test metrics: mAP@0.5 **0.858**, image-level sensitivity **0.927**,
+  specificity 0.975, PPV 0.973, max achievable recall **0.895**.
+- Per-source sensitivity: humerus/shoulder **0.986**, wrist 0.961,
+  FracAtlas-native **0.712** (realistic figure; headline lifted by easier sets).
+- Shoulder/humerus blind spot **closed**; **hip remains open** (2 test cases —
+  prior "hip" dataset was osteoporosis; proximal-femur set queued for v5).
+- Learned fracture-type classifier now scaffolded (`train_typing.py`) but untrained.
+
+**Next: train the type classifier; acquire proximal-femur (hip); external validation.**
