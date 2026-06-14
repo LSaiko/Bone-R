@@ -11,35 +11,42 @@ separately or together.
 > ⚠️ Research/educational tool only. Outputs are "best guess" estimates and are
 > **not** a medical diagnosis. Always recommend a qualified orthopedic consult.
 
-## Results (current model)
+## Results
 
-Detector **YOLOv8m**, trained on the Phase-1 harmonized FracAtlas split
-(`dataset_v2`), evaluated on the held-out test split. The screening metrics
-matter more than mAP here — for fracture triage a *miss* is worse than a false
-alarm — so image-level sensitivity/specificity are reported alongside.
+Shipped detector: **YOLOv8m** (`fracture_yolov8m_v3`), trained on the harmonized
+**FracAtlas + GRAZPEDWRI-DX** merge (`dataset_v3`). The model improved in three
+deliberate stages — bigger backbone + harmonization, then a data scale-up — and
+the gains are reported honestly, including *where they did and didn't land*.
 
-**Backbone comparison** (same test split, single `fracture` class):
+**Progression** (held-out test split, image-level screening):
+
+| Version | Data | mAP@0.5 | Sensitivity | Specificity | Max recall |
+|---|---|---|---|---|---|
+| v1-baseline (v8s) | FracAtlas | 0.27 | — | — | — |
+| v1 (v8m, harmonized) | FracAtlas | 0.46 | 0.561 | 0.988 | 0.797 |
+| **v3 (v8m + GRAZPEDWRI)** | FracAtlas + wrist | **0.76** | **0.812** | 0.980 | **0.875** |
+
+v3 PPV **0.961** (TP 198 / FP 8 / TN 395 / FN 46 on 647 test images).
+
+**Backbone study** (separate apples-to-apples comparison on `dataset_v2`, all
+three trained + tested on identical data):
 
 | Backbone | mAP@0.5 | mAP@0.5:0.95 | Recall |
 |---|---|---|---|
-| **YOLOv8m** (shipped) | **0.460** | **0.198** | **0.429** |
+| **YOLOv8m** | **0.460** | **0.198** | **0.429** |
 | Faster R-CNN R50-FPNv2 | 0.354 | 0.171 | 0.288 |
 | RetinaNet R50-FPNv2 | 0.240 | 0.072 | 0.188 |
 
-**Image-level screening** (YOLOv8m, conf ≥ 0.25): sensitivity **0.561**,
-specificity **0.988**, PPV **0.902** (TP 37 / FP 4 / TN 338 / FN 29).
-
-**Honest limitations** (see [JOURNAL.md](JOURNAL.md) for the full analysis):
-- Harmonization (CLAHE + truncation repair + imgsz 800 + bigger backbone)
-  **nearly doubled** every metric over the v8s baseline (mAP@0.5 0.27 → 0.48).
-- But the model still misses ~44% of fractures, and recall **cannot** be tuned
-  past **0.797** at any threshold — a *data* limit, not a tuning one.
-- Hip/shoulder are near-unevaluable (≈1 / 0 fractured test cases). The path to
-  the sensitivity goal runs through **more boxed data** (GRAZPEDWRI-DX, Roboflow
-  Hip/Humerus — see `analysis/data_sourcing_log.md`), not more model tweaks.
+**Honest limitations** (full analysis in [JOURNAL.md](JOURNAL.md)):
+- The v3 jump is **largely wrist-driven** — GRAZPEDWRI is wrist-only, and its
+  region carries 0.879 sensitivity vs FracAtlas hand 0.705 / leg 0.538.
+- **Hip and shoulder remain unevaluable** (0 fractured test cases) and unimproved
+  — they need targeted data (Roboflow Hip/Humerus), not more wrist images.
+- Recall still cannot be pushed past **0.875**; ≥0.90 sensitivity needs more
+  region-diverse boxed data.
 - A MURA abnormality-classifier ensemble was tested and **rejected** — it traded
-  away specificity (0.99 → 0.87) without recovering missed fractures, because
-  MURA's "abnormal" label ≠ fracture (Entry 004). Studied negative result.
+  specificity (0.99 → 0.87) for nothing, since MURA "abnormal" ≠ fracture
+  (a studied negative result, Entry 004).
 
 ## Layout
 

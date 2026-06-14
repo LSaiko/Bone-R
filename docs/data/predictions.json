@@ -1,5 +1,5 @@
 {
-  "image": "000029_IMG0002482.png",
+  "image": "000033_IMG0002382.png",
   "width": 373,
   "height": 454,
   "models": {
@@ -8,25 +8,36 @@
       "boxes": [
         {
           "xyxy": [
-            226.7,
-            243.4,
-            244.4,
-            258.9
+            302.6,
+            159.9,
+            313.3,
+            179.7
           ],
-          "conf": 0.4199,
+          "conf": 0.7243,
           "type": "localized/simple (best guess)",
-          "severity": "low (best guess)"
+          "severity": "moderate (best guess)"
         },
         {
           "xyxy": [
-            225.9,
-            246.6,
-            233.6,
-            258.0
+            272.2,
+            168.7,
+            286.2,
+            181.7
           ],
-          "conf": 0.2798,
+          "conf": 0.7081,
           "type": "localized/simple (best guess)",
-          "severity": "low (best guess)"
+          "severity": "moderate (best guess)"
+        },
+        {
+          "xyxy": [
+            75.6,
+            177.5,
+            94.7,
+            196.6
+          ],
+          "conf": 0.6958,
+          "type": "localized/simple (best guess)",
+          "severity": "moderate (best guess)"
         }
       ]
     },
@@ -35,12 +46,34 @@
       "boxes": [
         {
           "xyxy": [
-            229.7,
-            239.4,
-            241.8,
-            261.6
+            74.7,
+            175.8,
+            94.5,
+            198.6
           ],
-          "conf": 0.5798,
+          "conf": 0.9118,
+          "type": "localized/simple (best guess)",
+          "severity": "high (best guess)"
+        },
+        {
+          "xyxy": [
+            272.9,
+            165.6,
+            285.8,
+            183.4
+          ],
+          "conf": 0.8331,
+          "type": "localized/simple (best guess)",
+          "severity": "moderate (best guess)"
+        },
+        {
+          "xyxy": [
+            301.3,
+            160.2,
+            313.6,
+            178.8
+          ],
+          "conf": 0.7925,
           "type": "localized/simple (best guess)",
           "severity": "moderate (best guess)"
         }
@@ -51,12 +84,34 @@
       "boxes": [
         {
           "xyxy": [
-            225.1,
-            240.7,
-            244.0,
-            260.3
+            272.4,
+            167.1,
+            285.4,
+            183.4
           ],
-          "conf": 0.9983,
+          "conf": 0.9992,
+          "type": "localized/simple (best guess)",
+          "severity": "high (best guess)"
+        },
+        {
+          "xyxy": [
+            75.5,
+            174.6,
+            94.8,
+            199.7
+          ],
+          "conf": 0.9992,
+          "type": "localized/simple (best guess)",
+          "severity": "high (best guess)"
+        },
+        {
+          "xyxy": [
+            300.2,
+            158.2,
+            314.1,
+            179.7
+          ],
+          "conf": 0.9991,
           "type": "localized/simple (best guess)",
           "severity": "high (best guess)"
         }

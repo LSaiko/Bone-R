@@ -4,9 +4,10 @@ MURA/
 MURA_cls/
 dataset/
 # Generated/harmonized dataset dirs
-dataset_v2/
+dataset_v[0-9]*/
 FracAtlas_proc/
 *_proc/
+GRAZ*/
 GRAZPEDWRI*/
 _smoke_proc/
 _tmp_*

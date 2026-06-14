@@ -113,7 +113,7 @@ def main() -> None:
     print(f"  background      : {n_neg}")
     print(f"  fracture boxes  : {n_boxes}")
     print(f"  output          : {args.out}")
-    print(f"  (fracture class {args.fracture_class} → 0; other classes dropped)")
+    print(f"  (fracture class {args.fracture_class} -> 0; other classes dropped)")
     if n_pos == 0:
         print("  WARNING: 0 fracture rows kept — check --fracture-class vs the "
               "dataset's data.yaml!")

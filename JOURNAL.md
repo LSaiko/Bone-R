@@ -332,3 +332,50 @@ Verified with a save/load round-trip, then RETRAINED RetinaNet → loads & score
 ### Status: v1 is code-complete and staged. Pending user: push + Pages enable.
 ### Next (v1.1+, Track D): acquire GRAZPEDWRI-DX → ingest → merge → retrain to
 lift the 0.797 recall ceiling; revisit fracture-typing via Roboflow HUMERUS.
+
+---
+
+## Entry 006 — 2026-06-14 — Track D: GRAZPEDWRI merge lifts the ceiling (v3)
+
+### Acquisition reality check
+The raw Figshare GRAZPEDWRI-DX release has **no bounding-box labels** — only
+images + image-level metadata (`dataset.csv`, which DOES carry AO/OTA
+`ao_classification` codes → a future Track-B typing source). YOLO boxes come from
+derivatives. Sourced via the **Roboflow mirror** (project-bef88/grazpedwri-dx
+v2) — but it is a **~2,396-image SUBSET**, not the full 20k. Fracture class index
+there is **2**, not 3 (8 classes, `foreignbody` dropped).
+
+### Ingest + merge
+`ingest_grazpedwri.py --fracture-class 2` → **1,599 fracture-positive** images
+(+797 bg, 2,111 boxes). Merged with `FracAtlas_proc` → `dataset_v3`
+(4,861 / 971 / 647). This **3.2×'d the fracture-positive image count**
+(717 → 2,316) — the decisive change, since FracAtlas was mostly negatives.
+
+### v3 results (YOLOv8m, early-stop epoch 92, best 69)
+| Metric (test) | v1 | v3 | Δ |
+|---|---|---|---|
+| mAP@0.5 | 0.460 | **0.761** | +65% |
+| mAP@0.5:0.95 | 0.198 | **0.369** | +86% |
+| image-level sensitivity | 0.561 | **0.812** | +45% |
+| specificity | 0.988 | 0.980 | ~flat |
+| PPV | 0.902 | **0.961** | +7% |
+| **max achievable recall** | 0.797 | **0.875** | ceiling lifted |
+
+### Honest read — gains are wrist-concentrated
+Per-region sensitivity: **unknown (GRAZPEDWRI wrist) 0.879** (174/244 test
+positives), hand 0.568→**0.705**, leg ~flat (0.538). **Hip & shoulder still 0
+test positives — unevaluable and unaddressed.** The headline jump is real but
+driven by the wrist distribution we added; the original FracAtlas regions
+improved modestly. GRAZPEDWRI being wrist-only means hip/shoulder remain the open
+gap (need Roboflow Hip/Humerus).
+
+### Decisions
+- **Shipped model is now `fracture_yolov8m_v3`.** Site overlay + README updated
+  to v3 (on a FracAtlas test image so all 3 backbones get a fair comparison).
+- Backbone study stays on `dataset_v2` (apples-to-apples); v3 is the data-scaling
+  result, presented separately to avoid mixing test sets.
+- Full 20k GRAZPEDWRI (OneDrive) and hip/shoulder sets remain the next data lever.
+
+### Status: v3 trained, evaluated, site regenerated, staged for commit.
+### Next: commit v3 (user pushes); then Roboflow Hip/Humerus for the remaining
+blind spots + AO/OTA typing track (data now identified in dataset.csv).
