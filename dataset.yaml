@@ -1,0 +1,16 @@
+# YOLO detection dataset config for bone-fracture detection.
+# Build the tree first:
+#   python scripts/fracatlas_to_yolo.py
+#   python scripts/make_splits.py --src FracAtlas/images --out dataset
+#
+# `path` is the dataset root; train/val/test are image dirs relative to it.
+# YOLO finds labels by swapping `images/` -> `labels/` in each path.
+
+path: dataset
+train: images/train
+val: images/val
+test: images/test
+
+# Single class: fracture (FracAtlas is single-class; MURA weak boxes reuse id 0)
+names:
+  0: fracture

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bone-R — Bone Fracture Detection (FracAtlas + MURA → CNN)</title>
+  <meta name="description"
+        content="Multi-backbone bone-fracture detection on X-rays. Compare YOLOv8, Faster R-CNN, RetinaNet and FCOS with a live overlay." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav">
+      <span class="brand">🦴 Bone-R</span>
+      <div class="links">
+        <a href="#demo">Live Compare</a>
+        <a href="#benchmark">Benchmark</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="https://github.com/LSaiko/Bone-R" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </nav>
+    <div class="hero-inner">
+      <h1>Bone fracture detection across the <span>best CNN detectors</span></h1>
+      <p class="tagline">
+        FracAtlas bounding boxes + MURA abnormality co-training, served through one
+        interface over YOLOv8, Faster R-CNN, RetinaNet and FCOS — with a live
+        "which-is-which" overlay to compare them side by side.
+      </p>
+      <div class="badges">
+        <span class="badge">FracAtlas · box-level</span>
+        <span class="badge">MURA · 40k films</span>
+        <span class="badge">4 swappable backbones</span>
+        <span class="badge">FastAPI + DICOM</span>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="#demo">Try the live overlay</a>
+        <a class="btn" href="https://github.com/LSaiko/Bone-R" target="_blank" rel="noopener">View source</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="demo" class="section">
+    <h2>Live model-comparison overlay</h2>
+    <p class="lead">
+      Toggle each detector to see where they agree and disagree on the same film.
+      Each model owns a color; box opacity tracks confidence.
+    </p>
+
+    <div class="demo-wrap">
+      <div class="canvas-col">
+        <canvas id="viewer" width="640" height="640" aria-label="fracture overlay viewer"></canvas>
+        <p class="hint" id="sourceHint">Showing synthetic demo data — replace
+          <code>docs/data/predictions.json</code> with real model output.</p>
+      </div>
+      <aside class="controls">
+        <h3>Models</h3>
+        <div id="modelToggles" class="toggles"></div>
+        <h3>Confidence ≥ <span id="confVal">0.25</span></h3>
+        <input type="range" id="confSlider" min="0" max="1" step="0.05" value="0.25" />
+        <div id="boxInfo" class="box-info">Hover a box for details.</div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="benchmark" class="section alt">
+    <h2>Backbone benchmark</h2>
+    <p class="lead">Same FracAtlas test split, single <code>fracture</code> class.
+      Numbers load from <code>docs/data/benchmark.json</code>.</p>
+    <table class="bench" id="benchTable">
+      <thead>
+        <tr><th>Backbone</th><th>mAP@0.5</th><th>mAP@0.5:0.95</th>
+            <th>Precision</th><th>Recall</th><th>Trait</th></tr>
+      </thead>
+      <tbody><!-- filled by app.js --></tbody>
+    </table>
+  </section>
+
+  <section id="pipeline" class="section">
+    <h2>Pipeline</h2>
+    <div class="steps">
+      <div class="step"><span>1</span><h4>Convert</h4>
+        <p>FracAtlas COCO → YOLO boxes; MURA folders → abnormal/normal labels.</p></div>
+      <div class="step"><span>2</span><h4>Train</h4>
+        <p>YOLOv8 detector + MURA classifier; or fine-tune any torchvision backbone.</p></div>
+      <div class="step"><span>3</span><h4>Ensemble</h4>
+        <p>Classifier P(abnormal) re-weights detections — sensitivity-first fusion.</p></div>
+      <div class="step"><span>4</span><h4>Serve</h4>
+        <p>FastAPI <code>/detect</code> takes PNG/DICOM → boxes, severity, consult.</p></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p><strong>Research / educational tool — not a medical device.</strong>
+       Outputs are best-guess estimates and must not be used for diagnosis.</p>
+    <p>© <span id="year"></span> Bone-R · <a href="https://github.com/LSaiko/Bone-R">LSaiko/Bone-R</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

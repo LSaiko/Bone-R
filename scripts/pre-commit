@@ -1,0 +1,7 @@
+#!/bin/bash
+# Git pre-commit hook
+# This file should be placed in .git/hooks/pre-commit or linked via:
+#   git config core.hooksPath scripts
+
+python3 "$(dirname "$0")/pre_commit_validate.py"
+exit $?

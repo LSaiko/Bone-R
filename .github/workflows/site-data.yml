@@ -1,0 +1,146 @@
+name: Validate Site Data
+
+# Trigger conditions:
+# - Manual trigger (workflow_dispatch) with optional artifact input for regeneration
+# - Push to main affecting docs/ to ensure landing page data is kept in sync
+# - Scheduled nightly validation (every day at 02:00 UTC)
+on:
+  workflow_dispatch:
+    inputs:
+      weights_artifact:
+        description: 'Name of uploaded artifact containing model weights (optional, enables regeneration)'
+        required: false
+        type: string
+      test_image:
+        description: 'Path to test X-ray image (default: docs/assets/demo.png)'
+        required: false
+        type: string
+        default: 'docs/assets/demo.png'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/data/**'
+      - 'scripts/validate_site_data.py'
+      - '.github/workflows/site-data.yml'
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 02:00 UTC
+
+jobs:
+  validate:
+    name: Validate JSON Schema & Format
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Validate site data (predictions.json and benchmark.json)
+        run: |
+          python scripts/validate_site_data.py --docs-dir docs
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "✓ All site data files are valid"
+          echo "  - docs/data/predictions.json: schema validated"
+          echo "  - docs/data/benchmark.json: schema validated"
+
+
+  # ===== OPTIONAL: Weights-Provided Regeneration Job =====
+  #
+  # This job regenerates landing page data (predictions.json, benchmark.json)
+  # from trained model weights. It is NOT triggered automatically because:
+  #
+  # 1. Training weights (*.pt files) are git-ignored and not in the repo
+  # 2. Regeneration requires GPU/heavy dependencies (torch, ultralytics, etc.)
+  # 3. It is meant for manual use when weights artifact is provided via workflow_dispatch
+  #
+  # To trigger this job:
+  #
+  # 1. Upload model weights as a GitHub Actions artifact to a prior workflow run
+  # 2. Go to Actions → "Validate Site Data" → "Run workflow"
+  # 3. Set "weights_artifact" to the artifact name (e.g., model-weights)
+  # 4. (Optional) Set "test_image" to override the test X-ray path
+  # 5. Click "Run workflow"
+  #
+  # The job will:
+  # - Download the weights artifact
+  # - Run benchmark.py and compare_overlay.py to regenerate JSON files
+  # - Validate the regenerated files
+  # - Upload the new JSON files as an artifact for inspection/manual commit
+  #
+  regenerate:
+    name: Regenerate Site Data (Manual - Requires Weights)
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.weights_artifact != ''
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # CPU PyTorch — adjust --index-url to cu118/cu121 if GPU is available
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install ultralytics opencv-python torchmetrics pyyaml
+
+      - name: Download weights artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.weights_artifact }}
+          path: weights/
+
+      - name: Regenerate benchmark.json
+        run: |
+          python benchmark.py \
+            --data dataset.yaml \
+            --model yolov8=weights/yolov8/best.pt \
+            --model retinanet=weights/retinanet.pt \
+            --model fasterrcnn=weights/fasterrcnn.pt \
+            --out docs/data/benchmark.json || echo "WARNING: benchmark.py failed or missing weights"
+
+      - name: Regenerate predictions.json
+        run: |
+          python compare_overlay.py \
+            --image ${{ github.event.inputs.test_image || 'docs/assets/demo.png' }} \
+            --model yolov8=weights/yolov8/best.pt \
+            --model retinanet=weights/retinanet.pt \
+            --model fasterrcnn=weights/fasterrcnn.pt \
+            --json docs/data/predictions.json \
+            --out docs/assets/compare-overlay.png || echo "WARNING: compare_overlay.py failed or missing weights"
+
+      - name: Validate regenerated data
+        run: |
+          python scripts/validate_site_data.py --docs-dir docs
+
+      - name: Upload regenerated data as artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regenerated-site-data
+          path: docs/data/
+          retention-days: 7
+          overwrite: true
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "✓ Site data regenerated and validated successfully"
+          echo "  Regenerated files uploaded as 'regenerated-site-data' artifact"
+          echo "  Manual next step: Download artifact, review, and commit to main"

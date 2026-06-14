@@ -1,0 +1,66 @@
+{
+  "image": "000029_IMG0002482.png",
+  "width": 373,
+  "height": 454,
+  "models": {
+    "yolov8": {
+      "color": "#00c800",
+      "boxes": [
+        {
+          "xyxy": [
+            226.7,
+            243.4,
+            244.4,
+            258.9
+          ],
+          "conf": 0.4199,
+          "type": "localized/simple (best guess)",
+          "severity": "low (best guess)"
+        },
+        {
+          "xyxy": [
+            225.9,
+            246.6,
+            233.6,
+            258.0
+          ],
+          "conf": 0.2798,
+          "type": "localized/simple (best guess)",
+          "severity": "low (best guess)"
+        }
+      ]
+    },
+    "retinanet": {
+      "color": "#0080ff",
+      "boxes": [
+        {
+          "xyxy": [
+            229.7,
+            239.4,
+            241.8,
+            261.6
+          ],
+          "conf": 0.5798,
+          "type": "localized/simple (best guess)",
+          "severity": "moderate (best guess)"
+        }
+      ]
+    },
+    "fasterrcnn": {
+      "color": "#ff0000",
+      "boxes": [
+        {
+          "xyxy": [
+            225.1,
+            240.7,
+            244.0,
+            260.3
+          ],
+          "conf": 0.9983,
+          "type": "localized/simple (best guess)",
+          "severity": "high (best guess)"
+        }
+      ]
+    }
+  }
+}

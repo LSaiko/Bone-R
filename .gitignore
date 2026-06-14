@@ -1,0 +1,33 @@
+# Datasets (large — not committed)
+FracAtlas/
+MURA/
+MURA_cls/
+dataset/
+# Generated/harmonized dataset dirs
+dataset_v2/
+FracAtlas_proc/
+*_proc/
+GRAZPEDWRI*/
+_smoke_proc/
+_tmp_*
+
+# Model weights / training runs
+*.pt
+runs/
+
+# Generated labels written alongside images
+**/images/**/*.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep the demo data the landing page ships with
+!docs/data/*.json
