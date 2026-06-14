@@ -92,6 +92,42 @@ def guess_type_and_severity(bbox, conf, img_w, img_h):
     return ftype, severity
 
 
+_MODE_THRESHOLDS: dict[str, float] = {
+    "screening": 0.10,   # High recall — catches more fractures at the cost of more false positives.
+    "balanced":  0.25,   # Default operating point.
+    "specific":  0.40,   # High precision — fewer false alarms, but may miss subtle fractures.
+}
+
+
+def conf_for_mode(mode: str, base_conf: float = 0.25) -> float:
+    """Return the confidence threshold appropriate for *mode*.
+
+    Clinical rationale
+    ------------------
+    In fracture screening a *missed fracture* (false negative) typically causes
+    more harm than an unnecessary follow-up (false positive).  Three operating
+    points are therefore exposed:
+
+    * **screening** (0.10) — maximises sensitivity.  Use when the consequence of
+      a missed fracture is high (e.g. emergency triage, paediatric wrist, elderly
+      hip).  Expect more false alarms; every positive still needs clinical review.
+    * **balanced** (0.25, default) — trades recall and precision roughly equally.
+      Appropriate for routine radiology second-read assistance.
+    * **specific** (0.40) — maximises precision.  Useful when confirmatory
+      evidence is already present and you want to reduce noise, or as a
+      high-confidence annotation filter in research pipelines.
+
+    If *mode* is unrecognised it falls back to *base_conf* so callers that pass
+    custom thresholds are never silently overridden.
+
+    Parameters
+    ----------
+    mode:      one of "screening", "balanced", "specific".
+    base_conf: fallback / override threshold when *mode* is unknown.
+    """
+    return _MODE_THRESHOLDS.get(mode, base_conf)
+
+
 def run_inference(model, image: np.ndarray, conf: float = 0.25) -> list[Detection]:
     h, w = image.shape[:2]
     results = model.predict(image, conf=conf, verbose=False)

@@ -246,6 +246,96 @@ This section consolidates all three passes into a final acquisition plan. The "l
 
 ---
 
-**Loop status: COMPLETE**
+**Loop status: REOPENED — Pass 4 (hip-fracture targeted re-search)**
 
-**Final recommendation:** Acquire datasets in Track A order. Start with A-1 (GRAZPEDWRI-DX) because it is the only dataset that requires no login, has a confirmed open license, and immediately triples total fracture-box count. In parallel, export A-3 (Roboflow HUMERUS) via the Roboflow API — this single ~548-image dataset is uniquely irreplaceable because it is the only source of fracture-morphology bounding boxes found in the entire search; it simultaneously populates both Track A (shoulder boxes) and Track B (fracture-type classification). Datasets A-2 and A-4 should follow once license pages are verified. The AO/OTA typing gap (Track B-3) cannot be closed through public data and should be escalated to a clinical partnership discussion; until then, the HUMERUS + Bone Break Classification combination gives a 10-class typed signal sufficient to prototype the fracture-type head. Synthetic augmentation (copy-paste) should be integrated into the training pipeline from the start to multiply the small hip dataset (A-4, ~83 images) to a trainable count.
+The "Roboflow Hip X-ray (modzie-work)" dataset logged at A-4 was found on inspection to be an OSTEOPOROSIS classification dataset (classes: Osteoporosis, Implant, No osteoporosis) — not a hip fracture detector. It has been removed from the acquisition plan. Pass 4 below searches specifically for genuine hip/proximal-femur fracture datasets.
+
+---
+
+## Pass 4 — 2026-06-14 (hip-fracture targeted re-search)
+
+**Context:** The Roboflow "Hip X-ray" (modzie-work) entry was rejected after class-label verification revealed it labels osteoporosis/implants, not fractures. This pass searches Roboflow Universe, Kaggle, Zenodo, and published papers for datasets that GENUINELY annotate hip fractures (proximal femur / femoral neck / intertrochanteric / subtrochanteric) with bounding boxes, masks, or at minimum image-level fracture labels.
+
+---
+
+### 13. Roboflow "Proximal Femur Fracture" (ThesisYolo v8) — PRIMARY CANDIDATE
+
+- **Links:**
+  - Instance segmentation variant: https://universe.roboflow.com/thesisyolo-v8/proximal-femur-fracture
+  - Detection + classification variant: https://universe.roboflow.com/thesisyolo-v8/proximal-femur-fracture-detection-and-classification
+- **Modality / Region:** Plain radiograph — **proximal femur / hip** (anteroposterior pelvis/hip views)
+- **Images / Fractures:** ~756 images (segmentation project); ~640 images (detection + classification project); both are fracture-only (no "no fracture" class reported)
+- **Annotation type:** **Instance segmentation masks** (polygon outlines) — convertible to bounding boxes via mask bounding rect. The detection+classification variant also has a pre-trained model.
+- **Classes (CONFIRMED):** 7 classes explicitly describing fracture anatomy — `dislocation`, `grater-trochanter` (greater trochanter avulsion), `intertrochanteric`, `lesser-trochanter`, `neck` (femoral neck fracture), `neck-normal` (non-fractured neck, used as a negative class in context), `subtrochanteric`. These are TRUE fracture anatomical subtypes — CONFIRMED to be genuine hip fracture labels, not osteoporosis/implant classes.
+- **License:** CC BY 4.0 (reported on dataset page) — free to use with attribution
+- **Access / Download:** Roboflow API export → YOLOv8 Segmentation format; free Roboflow account required. Export URL: https://universe.roboflow.com/thesisyolo-v8/proximal-femur-fracture → Download → YOLOv8 Segment. Alternatively, the detection+classification variant exports as standard bounding-box YOLO.
+- **Format conversion to YOLO:** Low effort — Roboflow exports to YOLOv8 segmentation TXT format natively; convert polygon masks to bounding boxes with a one-liner (e.g. `x_min, y_min, x_max, y_max = mask.bounds`). The 7 classes can be merged into a single `hip_fracture` class for the detection track, or kept typed for the fracture-type track. `neck-normal` (negative class) should be excluded from fracture training targets.
+- **Fit score: 5 / 5** — This is the strongest hip-fracture dataset found in any public repository. It directly addresses the hip blind spot, has CONFIRMED true fracture subtypes, ships with segmentation masks (richer than boxes), and is CC BY 4.0. Image count (~640–756) is small but comparable to the HUMERUS dataset (which proved sufficient to open the shoulder track). **Replace the rejected modzie-work entry; this is now A-4 in the acquisition plan.**
+- **Caveats:** (1) Dataset appears to be a thesis project — provenance of the underlying X-rays is not documented on the Roboflow page; confirm source and IRB status if clinical deployment is planned. (2) `neck-normal` class must be filtered out before fracture-label training. (3) Two separate Roboflow projects exist (segmentation + detection) — download both and compare; the detection variant may have slightly different class definitions.
+
+---
+
+### 14. FracAtlas — hip subset
+
+- **Link:** https://figshare.com/articles/dataset/The_dataset/22363012  
+  Paper: https://www.nature.com/articles/s41597-023-02432-4
+- **Modality / Region:** Plain radiograph — multi-region: **hand, wrist, shoulder, leg, hip** (4,083 images total from 3 hospitals in Bangladesh)
+- **Images / Fractures:** 4,083 images total; 717 images with fracture annotations (922 fracture instances total). Hip images are a subset — exact hip count not separately published in metadata, but the dataset description explicitly lists hip as one of the four regions.
+- **Annotation type:** **Bounding box + segmentation mask** per fracture instance; global classification labels also included. Full COCO-format JSON annotations provided.
+- **Classes (CONFIRMED):** Annotations are at the fracture-instance level (fractured / not fractured per image, with box+mask per instance). Fracture type by region is implied by anatomical region but not AO/OTA-typed. The hip images contain genuine hip fracture annotations — CONFIRMED fracture labels (this dataset is already partially in use in the Bone-R project pipeline).
+- **License:** CC BY 4.0
+- **Access / Download:** Figshare direct download (no login required): https://figshare.com/articles/dataset/The_dataset/22363012
+- **Format conversion to YOLO:** Low effort — COCO JSON → YOLO TXT via standard converters (e.g. `ultralytics` `convert_coco`). Already used as the base dataset for Bone-R; the hip subset can be isolated by filtering images from the `Hip` folder.
+- **Fit score: 3 / 5** — Already in the project (likely ingested as part of the existing pipeline). The hip subset is real and genuinely annotated, but the total hip-image count is a fraction of the 717 fractured images (probably <200 hip-specific fracture images). Useful as a baseline but insufficient alone for the hip gap; supplement with entry #13 above.
+
+---
+
+### 15. PENGWIN 2024 — Pelvic X-ray (synthetic DRR, segmentation masks)
+
+- **Link:** https://zenodo.org/records/10990768  
+  Challenge page: https://pengwin.grand-challenge.org/data/
+- **Modality / Region:** **Simulated X-ray (DRR from CT)** — pelvic fracture, sacrum and hip bone fragments
+- **Images / Fractures:** 50,000 simulated X-ray images generated from 100 CT volumes (500 angles per volume); binary segmentation masks for bone fragments
+- **Annotation type:** **Segmentation mask** (binary, per bone fragment) — no typed fracture-class labels; oriented toward fragment detection, not fracture-line classification
+- **Classes (CONFIRMED):** Fragment-level segmentation — genuine pelvic/hip fracture content. However, the images are synthetic DRRs generated via DeepDRR from CT, not real plain radiographs. Distribution shift from real X-ray is significant.
+- **License:** Not explicitly stated in search results — must verify on Zenodo page before use
+- **Access / Download:** https://doi.org/10.5281/zenodo.10927452 and https://doi.org/10.5281/zenodo.10913195 (Zenodo, no login required)
+- **Format conversion to YOLO:** Medium effort — binary masks → bounding rects is straightforward, but synthetic DRR domain gap may harm YOLO performance on real X-rays; domain adaptation (style transfer or mixed training) would be needed
+- **Fit score: 2 / 5** — Genuine hip/pelvic fracture content with large volume, but synthetic images introduce domain gap. Not suitable as a primary training source without domain adaptation. Worth noting as a data-augmentation or pre-training corpus if the ThesisYolo set proves too small.
+
+---
+
+### 16. Published institutional hip-fracture datasets — NOT publicly released
+
+- **Gloucester / Bath NHS hip fracture dataset:** Referenced in multiple papers (Adams et al. 2020, RSNA AI); contains ~3,000+ hip X-rays with bounding boxes and 6-class fracture typing. **NOT publicly available** — held under NHS data governance; requires data-sharing agreement with Gloucestershire Hospitals NHS Foundation Trust.
+- **RSNA 2020 hip fracture dataset (internal):** Used in the Rajpurkar/Ng Stanford paper (Automatic Hip Fracture Identification, arXiv 1909.06326); 1,118 studies with 6 fracture classes and bounding boxes (3,034 bounded hips). **NOT publicly available** — Stanford AIMI has not released this dataset.
+- **2025 Insights into Imaging segmentation study:** 10,308 hip X-rays, 986 manually annotated with segmentation masks and fracture-grade classification (Garden/Evans-Jensen). **NOT publicly available** — institutional data from a single center.
+- **Verdict:** The highest-quality hip-fracture annotation sets are all behind institutional data-sharing agreements. The best realistically acquirable dataset is the ThesisYolo Roboflow set (entry #13). If the project needs clinical-grade volume, a data-sharing agreement is the only path.
+
+---
+
+## Priority shortlist — updated Pass 4 (hip gap re-opened)
+
+**The modzie-work "Hip X-ray" entry is REMOVED from the acquisition plan (osteoporosis dataset, not fracture).**
+
+### Track A — Detection Boxes (updated)
+
+| Priority | Dataset | Rationale | Next action |
+|----------|---------|-----------|-------------|
+| A-1 | **GRAZPEDWRI-DX** | 20 K images, YOLO-ready, CC BY 4.0. Unchanged. | Download from Figshare |
+| A-2 | **pkdarabi Bone Fracture Detection CV Project** | 4,148 images, YOLO boxes, multi-region. Unchanged. | Kaggle download; verify license |
+| A-3 | **Roboflow HUMERUS** (new-workspace-ozkjr) | ~548 images, fracture-TYPE boxes, shoulder. Unchanged. | Roboflow API export |
+| A-4 | **Roboflow Proximal Femur Fracture** (ThesisYolo v8) | ~640–756 images, CONFIRMED hip fracture subtypes (intertrochanteric, femoral neck, subtrochanteric, dislocation), CC BY 4.0, segmentation masks → boxes. **REPLACES the rejected modzie-work entry.** | Roboflow API export → YOLOv8 Segment; convert masks to boxes; exclude `neck-normal` class |
+| A-5 | **FracAtlas hip subset** | Already in project; ~<200 hip fracture boxes. Supplement only. | Filter Hip folder from existing FracAtlas download |
+| A-6 | **Copy-paste augmentation** | Synthetically expand hip boxes (Strategy 1) — especially important given A-4 is still ~640–756 images | Albumentations `CopyPaste` on hip crops from A-4 + A-5 |
+
+### Gap assessment
+
+- **Hip blind spot fillable from public data? YES — partially.** The ThesisYolo Proximal Femur Fracture set (entry #13) is a genuine, CONFIRMED hip-fracture dataset with typed segmentation masks on Roboflow, CC BY 4.0. It is small (~640–756 images) but real. Combined with the FracAtlas hip subset and copy-paste augmentation, the hip blind spot can be partially addressed without institutional data access.
+- **Caveat:** The highest-quality hip datasets (Gloucester NHS, Stanford RSNA 2020 — 1,000–3,000 studies with expert-typed bounding boxes) are NOT public. Clinical-grade hip-fracture detection will ultimately require a data-sharing agreement to reach those volumes.
+
+---
+
+**Loop status: COMPLETE (Pass 4 closes hip re-search)**
+
+**Final recommendation (updated):** Acquire datasets in Track A order. A-4 is now the ThesisYolo Proximal Femur Fracture set — download both the segmentation project and the detection+classification project from Roboflow, compare class definitions, and convert polygon masks to bounding boxes. Exclude the `neck-normal` class from fracture training targets. Combine with FracAtlas hip subset (A-5) and copy-paste augmentation (A-6) to build a trainable hip corpus. For the shoulder track, A-3 (HUMERUS) remains the primary source. The AO/OTA gap remains unresolved by public data; escalate to clinical partnership if needed.

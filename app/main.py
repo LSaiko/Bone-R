@@ -26,7 +26,7 @@ from fastapi import FastAPI, File, UploadFile, Query, HTTPException
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from inference import read_image  # noqa: E402
+from inference import read_image, conf_for_mode  # noqa: E402
 from models import build_detector  # noqa: E402
 
 WEIGHTS = os.environ.get("FRACTURE_WEIGHTS", "yolov8s.pt")
@@ -84,24 +84,66 @@ def health():
             "maps_enabled": bool(MAPS_KEY)}
 
 
+_MODE_NOTES: dict[str, str] = {
+    "screening": (
+        "High-recall screening mode — favors catching fractures over avoiding "
+        "false alarms; verify all positives clinically."
+    ),
+    "balanced": (
+        "Balanced mode — default operating point; trades recall and precision "
+        "roughly equally."
+    ),
+    "specific": (
+        "High-precision mode — reduces false alarms; may miss subtle fractures; "
+        "use only when additional clinical evidence is already available."
+    ),
+}
+
+_CONF_SENTINEL = -1.0  # signals that no explicit conf was provided
+
+
 @app.post("/detect")
 async def detect(
     file: UploadFile = File(...),
-    conf: float = Query(0.25, ge=0.0, le=1.0),
+    # mode selects a predefined operating point (screening | balanced | specific).
+    # An explicit conf= still wins as a manual override.
+    mode: str = Query("balanced"),
+    conf: float = Query(_CONF_SENTINEL, ge=-1.0, le=1.0),
     lat: float | None = Query(None),
     lng: float | None = Query(None),
 ):
+    # Resolve effective confidence threshold.
+    # Explicit conf= takes priority; otherwise derive from mode.
+    if conf != _CONF_SENTINEL:
+        # Caller provided an explicit override — honour it and note the mode as
+        # "custom" so the response is transparent.
+        effective_conf = conf
+        effective_mode = "custom"
+        mode_note = (
+            f"Custom threshold override — conf={conf:.2f} was supplied "
+            "directly and takes precedence over mode."
+        )
+    else:
+        effective_conf = conf_for_mode(mode)
+        effective_mode = mode if mode in _MODE_NOTES else "balanced"
+        mode_note = _MODE_NOTES.get(effective_mode, _MODE_NOTES["balanced"])
+
     data = await file.read()
     try:
         image = read_image(data, file.filename or "upload.png")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Could not read image: {e}")
 
-    dets = get_detector().predict(image, conf=conf)
+    dets = get_detector().predict(image, conf=effective_conf)
 
     fractured = len(dets) > 0
     response = {
         "filename": file.filename,
+        "operating_mode": {
+            "mode": effective_mode,
+            "conf_threshold": effective_conf,
+            "note": mode_note,
+        },
         "image_size": {"height": image.shape[0], "width": image.shape[1]},
         "fracture_detected": fractured,
         "num_detections": len(dets),

@@ -43,8 +43,14 @@ IMG_EXTS = {".png", ".jpg", ".jpeg"}
 FRACTURE_CLASS_ID = 0  # Bone-R target id
 
 
-def remap_label(text: str, fracture_class: int) -> list[str]:
-    """Keep only fracture rows, remap their class id to 0. Returns YOLO lines."""
+def remap_label(text: str, fracture_class: int, all_fracture: bool = False) -> list[str]:
+    """Remap rows to single fracture class 0. Returns YOLO lines.
+
+    Default: keep only rows whose class == fracture_class (GRAZPEDWRI multi-class).
+    all_fracture=True: keep EVERY row and map it to 0 — for datasets where all
+    classes are fracture *subtypes* (e.g. the HUMERUS set: oblique/transverse/
+    segmental/spiral are all fractures).
+    """
     out = []
     for line in text.splitlines():
         line = line.strip()
@@ -57,7 +63,7 @@ def remap_label(text: str, fracture_class: int) -> list[str]:
             cls = int(float(parts[0]))
         except ValueError:
             continue
-        if cls != fracture_class:
+        if not all_fracture and cls != fracture_class:
             continue  # drop non-fracture classes
         # Replace class id with 0; keep the 4 normalized box coords as-is.
         out.append(" ".join([str(FRACTURE_CLASS_ID)] + parts[1:5]))
@@ -78,6 +84,9 @@ def main() -> None:
                     help="Source class id for 'fracture' in GRAZPEDWRI data.yaml")
     ap.add_argument("--copy", action="store_true",
                     help="Copy images (default symlink; copy is Windows-safe)")
+    ap.add_argument("--all-fracture", action="store_true",
+                    help="Treat ALL classes as fracture (datasets typed by "
+                         "fracture morphology, e.g. HUMERUS oblique/transverse/...)")
     args = ap.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
@@ -89,7 +98,8 @@ def main() -> None:
     n_pos = n_neg = n_boxes = 0
     for img in imgs:
         lbl = find_label(args.labels, img.stem)
-        lines = remap_label(lbl.read_text(), args.fracture_class) if lbl else []
+        lines = remap_label(lbl.read_text(), args.fracture_class,
+                             args.all_fracture) if lbl else []
         n_boxes += len(lines)
         if lines:
             n_pos += 1
