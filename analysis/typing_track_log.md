@@ -65,3 +65,34 @@ Grand-total percentages: oblique 30.1%, segmental 22.0%, spiral 25.1%, transvers
   loss, oversampling segmental/transverse, or augmenting those classes.
 - [ ] **Export best weights** to `models/` and wire into `ensemble.py` as an optional
   type-tagging head on top of the existing fracture detector.
+
+---
+
+## Pass 2 — 2026-06-14 — First type classifier trained
+
+Ran `train_typing.py` (yolov8s-cls, 40 epochs req, early-stop ep 19, best ep 9,
+imgsz 320, batch 32). Weights: `runs/classify/fracture_type_cls/weights/best.pt`.
+
+**Overall top-1 = 0.703** (4 classes, random baseline 0.25) — real signal, far
+from the >95% project goal.
+
+Per-class (test, ~8/class — TINY, noisy):
+| type | acc | confusion |
+|---|---|---|
+| spiral | 1.00 (8/8) | — |
+| oblique | 0.75 (6/8) | → spiral, transverse |
+| transverse | 0.62 (5/8) | → segmental/spiral/oblique |
+| **segmental** | **0.38 (3/8)** | → oblique (4 of 5 misses) |
+
+**Read:** segmental↔oblique is the main confusion (clinically plausible —
+both can show angled/multi-line patterns). The 32-image test set makes per-class
+numbers swing ±12 pp per image, so treat as a proof-of-concept, not a grade.
+
+**Decisions / next pass:**
+- Proof-of-concept SUCCESS: typing is learnable from this data. NOT production.
+- Biggest lever is DATA: add GRAZPEDWRI `ao_classification` (AO/OTA → morphology
+  map) to 5-10x the set and add a real test split. Until then accuracy is noisy.
+- Then: oversample/augment segmental; re-evaluate; only after a real test split
+  should the ">95%" goal be assessed.
+- Keep type output flagged "best guess / experimental" in any UI — do NOT replace
+  the detector's role with it.
