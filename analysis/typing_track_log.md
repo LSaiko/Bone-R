@@ -218,3 +218,162 @@ need new typed data, not more compute.
 **Next (research, anytime):** find an adult long-bone dataset with OTA 12-A/B/C
 codes or direct morphology labels; only then is the >95% goal assessable. Keep
 type output flagged experimental in any UI.
+
+---
+
+## Pass 5 — 2026-06-14 — Typed-data hunt
+
+### Objective
+Find public datasets with fracture-MORPHOLOGY labels (line direction: transverse /
+oblique / spiral / comminuted / segmental etc.) to unblock the typing classifier
+stuck at top-1 0.734 on 1,324 humerus images.
+
+### Candidates evaluated
+
+---
+
+#### 1. Kaggle — Bone Break Classification Image Dataset (pkdarabi)
+- **URL:** https://www.kaggle.com/datasets/pkdarabi/bone-break-classification-image-dataset
+- **Label scheme:** CONFIRMED morphology. 10 image-level classes:
+  Avulsion, Comminuted, Fracture-Dislocation, Greenstick, Hairline, Impacted,
+  Longitudinal, Oblique, Pathological, Spiral.
+  **NOTE: no "Transverse" class** — it is labelled "Longitudinal" (perpendicular
+  axis framing may differ). "Segmental" is also absent; closest analogue is
+  Comminuted. Overlap with current 4-class scheme: Oblique ✓, Spiral ✓,
+  Comminuted ≈ Segmental (partial), Transverse ✗ (not present by that name).
+- **Size:** ~1,000–1,200 images total across 10 classes; per-class rough counts
+  from search-confirmed figures: Avulsion ~123, Comminuted ~148, Greenstick ~122,
+  Hairline ~111, Impacted ~84, Longitudinal ~80, Oblique ~85, Pathological ~134,
+  Spiral ~86. Total ~1,000 images (some sources cite up to ~9,000 after
+  augmentation — treat augmented versions with caution for training).
+- **Annotation type:** Image-level classification (folder-per-class). No bounding boxes.
+- **License:** Not confirmed from search results alone; Kaggle default is
+  "Data files © Original Authors" unless stated otherwise. Must check dataset
+  page for explicit license before use in production.
+- **Access:** Free Kaggle download (requires account). Direct download via
+  `kaggle datasets download pkdarabi/bone-break-classification-image-dataset`.
+- **Fit score: 3/5.** Real morphology labels confirmed. Overlaps Oblique + Spiral
+  directly. Missing Transverse (uses Longitudinal instead — mappable with care)
+  and Segmental. ~80–148 images/class is comparable to our current humerus
+  counts, so volume gain is modest unless augmented versions are trustworthy.
+  Multi-region (mixed anatomy) adds generalisation but also noise. Class name
+  reconciliation needed before merging with current 4-class taxonomy.
+
+---
+
+#### 2. Roboflow Universe — Fracture_ID (hazar/fracture_id)
+- **URL:** https://universe.roboflow.com/hazar/fracture_id
+- **Label scheme:** Morphology classification dataset with classes including
+  Avulsion, Comminuted, Dislocation, Greenstick, Hairline, Impacted, Longitudinal,
+  Oblique, Pathological, Spiral — same or very similar taxonomy to pkdarabi
+  (may be the same underlying source re-uploaded to Roboflow with bounding-box
+  annotations added).
+- **Size:** 309 images (small). Likely bounding-box annotated.
+- **Annotation type:** Object detection (boxes), which means morphology is a box
+  class — can be collapsed to image-level for classifier training.
+- **License:** Roboflow Public datasets are typically CC BY 4.0; verify on page.
+- **Access:** Free Roboflow download in YOLO/COCO/VOC formats.
+- **Fit score: 2/5.** Morphology labels confirmed but 309 images total is too
+  small to move the needle meaningfully. Worth merging if pkdarabi is acquired,
+  but not a standalone solution.
+
+---
+
+#### 3. FracAtlas (figshare / Kaggle mirror)
+- **URL:** https://figshare.com/articles/dataset/The_dataset/22363012
+- **Label scheme:** CONFIRMED BINARY ONLY — fractured / not-fractured.
+  CSV columns: fractured (0/1), hand/leg/hip/shoulder region, hardware present.
+  NO fracture morphology or line-direction labels whatsoever.
+  **DISQUALIFIED** — same recurring mistake as GRAZPEDWRI. Do not re-propose.
+- **Size:** 4,083 images (717 fractured, 3,366 normal).
+- **License:** CC BY 4.0.
+- **Fit score: 0/5.** Binary classification only. Not usable for morphology typing.
+
+---
+
+#### 4. Tanzi et al. AO/OTA Femur Fracture Dataset (proximal femur, AO 31A/B)
+- **URL / paper:** https://pmc.ncbi.nlm.nih.gov/articles/PMC11422035/ (YOLOv8
+  follow-up); original Tanzi 2022 in European Journal of Radiology Open.
+- **Label scheme:** CONFIRMED adult AO/OTA adult codes for proximal femur:
+  31-A1, 31-A2, 31-A3, 31-B1, 31-B2, 31-B3 — 6 classes plus "unbroken".
+  AO 31-A1 = simple transverse-like intertrochanteric; A2/A3 = comminuted
+  patterns. These DO encode fracture morphology and line characteristics (adult
+  AO, not pediatric PCCF). Strong clinical validity.
+- **Size:** 4,233 manually annotated images; class breakdown: Unbroken 1,976,
+  A1 535, A2 473, A3 171, B1 637, B2 333, B3 108.
+- **Annotation type:** Image-level (X-ray classification) with some bounding-box
+  work in follow-up papers.
+- **License / Access:** NOT publicly downloadable. Dataset appears to be held by
+  the original authors (University of Turin / CTO Hospital Turin). Multiple papers
+  use it but no public repository found. Contact: authors of Tanzi et al. 2022
+  (DOI 10.1016/j.ejro.2020.100383).
+- **Fit score: 4/5 if obtained; 0/5 currently.** Best clinical-grade morphology
+  signal found — adult AO codes directly map to line-direction morphology. Blocked
+  by non-public access. Worth a direct email request to authors.
+
+---
+
+#### 5. Kaggle — Bone Fracture Multi-Region X-ray Data (bmadushanirodrigo)
+- **URL:** https://www.kaggle.com/datasets/bmadushanirodrigo/fracture-multi-region-x-ray-data
+- **Label scheme:** Based on search context this dataset contains fracture /
+  no-fracture labels by body region (multi-region detection). Morphology type
+  labels NOT confirmed. Likely binary per-region, similar to FracAtlas pattern.
+- **Size:** Unknown without direct page access.
+- **Fit score: 1/5 (unconfirmed).** Do not acquire until morphology labels are
+  explicitly confirmed on the Kaggle page.
+
+---
+
+### Typed-data shortlist (ranked)
+
+| Rank | Dataset | Morphology confirmed? | ~Usable typed images | Public? |
+|------|---------|----------------------|---------------------|---------|
+| 1 | **pkdarabi Bone Break Classification (Kaggle)** | YES — 10 classes | ~900 net (excl. pathological/dislocation) | Yes |
+| 2 | **Tanzi AO/OTA Femur (email request)** | YES — AO 31A/B | ~2,257 fractured | No (request) |
+| 3 | **hazar fracture_id (Roboflow)** | YES — same taxonomy | ~280 usable | Yes |
+| 4 | **bmadushanirodrigo multi-region** | UNCONFIRMED | unknown | Yes |
+| X | FracAtlas | **NO — binary only** | 0 | Yes (irrelevant) |
+
+### #1 Recommended acquisition: pkdarabi Bone Break Classification
+
+**Why:** Only confirmed-public dataset with direct fracture morphology image-level
+labels at a scale that could meaningfully extend the current 1,324-image humerus
+set. Oblique and Spiral map 1:1 to our taxonomy. Longitudinal (~80 images) maps
+approximately to Transverse (same bone-axis fracture, name differs). Comminuted
+(~148 images) is the closest proxy for Segmental (both multi-fragment); label
+reconciliation is needed but straightforward.
+
+**Prep / conversion needed:**
+1. Confirm license on Kaggle page before use — must be CC BY or similar.
+2. Download with `kaggle datasets download pkdarabi/bone-break-classification-image-dataset`.
+3. Exclude Avulsion, Hairline, Impacted, Pathological, Fracture-Dislocation,
+   Greenstick — these have no clean mapping to current 4-class scheme.
+4. Remap: Oblique → oblique, Spiral → spiral, Longitudinal → transverse
+   (document this mapping), Comminuted → segmental (document as approximate).
+5. Merge with existing `typing_dataset/train` — run de-dup check on filenames.
+6. Re-train with the merged ~1,900–2,200 image set, re-evaluate on humerus test split.
+
+**#2 if public access is blocked:** Email Tanzi et al. (University of Turin /
+CTO Hospital Turin) requesting the 4,233-image AO/OTA femur dataset. This would
+add 2,257 fracture-positive images with high-quality adult AO labels (A1/A2/A3
+map cleanly to transverse/oblique/comminuted patterns). Longer lead time but
+far higher clinical quality.
+
+### >95% typing goal: realistically reachable from public data?
+
+**No — not from currently available public data alone.**
+
+Adding pkdarabi (~900 usable typed images) brings training to ~2,200 images across
+a harmonised 4-class scheme. That likely moves top-1 from 0.734 toward ~0.80–0.85
+(estimated), still short of >95%. To reach >95% reliably:
+- Need ≥5,000 typed training images with a genuine 500+ image held-out test split.
+- The Tanzi femur dataset (via email request) plus pkdarabi combined would approach
+  ~3,500–4,000 usable typed images — closer, but anatomy mismatch (femur vs. humerus
+  vs. radius) means the model must learn anatomy-agnostic morphology features, which
+  requires even more diversity and likely a larger backbone.
+- Realistic path to >95%: either (a) a hospital PACS pull with radiology report NLP
+  to extract morphology labels (100s–1000s per institution), or (b) expert re-labeling
+  of the 13,550-image GRAZPEDWRI set for adult-equivalent morphology patterns (high
+  cost, pediatric anatomy caveat still applies).
+- **Recommended near-term goal:** target top-1 ~0.85 with pkdarabi merge, flag the
+  >95% goal as requiring institutional data, and keep type output marked experimental.
