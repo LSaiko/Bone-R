@@ -377,3 +377,35 @@ a harmonised 4-class scheme. That likely moves top-1 from 0.734 toward ~0.80–0
   cost, pediatric anatomy caveat still applies).
 - **Recommended near-term goal:** target top-1 ~0.85 with pkdarabi merge, flag the
   >95% goal as requiring institutional data, and keep type output marked experimental.
+
+---
+
+## Pass 6 — 2026-06-14 — pkdarabi merge: +14.5pp on a fair test
+
+Acquired pkdarabi Bone Break Classification (Kaggle, 1,129 imgs, 10 morphology
+classes). **LICENSE: null/unspecified on Kaggle → treat as all-rights-reserved.
+Used for a LOCAL experiment only (images & weights git-ignored, not
+redistributed). NOT cleared for any published/portfolio claim until the author
+confirms a license.**
+
+Taxonomy overlap is partial: oblique↔oblique, spiral↔spiral (1:1),
+comminuted→segmental (multi-fragment, defensible). transverse has NO clean
+pkdarabi match — "longitudinal" is morphologically the OPPOSITE (along-axis), so
+it was NOT mapped; transverse did not grow. Added 85 oblique / 86 spiral / 148
+segmental → `typing_dataset_v2` (1,583 train; test 62 vs old 32).
+
+**Apples-to-apples (same typing_dataset_v2/test, 62 imgs):**
+| model | overall | oblique | segmental | spiral | transverse |
+|---|---|---|---|---|---|
+| humerus-only | 0.516 | 8/16 | 7/22 | 12/16 | 5/8 |
+| **merged v2** | **0.661** | 13/16 | 12/22 | 9/16 | 7/8 |
+
+**+14.5pp.** segmental (target) 7→12; oblique & transverse also up; spiral down
+slightly (added multi-bone spirals are harder — robustness, not regression). The
+naive "0.703 vs 0.661" comparison is INVALID (different test sets — old test was
+trivially easy single-region humerus).
+
+**Status:** merge is a real improvement. Best model
+`runs/classify/fracture_type_cls_v2` (experimental, license-caveated).
+**Next:** confirm pkdarabi license; grow transverse (still humerus-only — needs a
+true transverse source); consider a richer 10-class model on pkdarabi's full set.
