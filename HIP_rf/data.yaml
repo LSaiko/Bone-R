@@ -1,0 +1,25 @@
+names:
+- left-dislocation
+- left-grater-trochanter
+- left-intertrochanteric
+- left-lesser-trochanter
+- left-neck
+- left-subtrochanteric
+- normal-left
+- normal-right
+- right-dislocation
+- right-grater-trochanter
+- right-intertrochanteric
+- right-lesser-trochanter
+- right-neck
+- right-subtrochanteric
+nc: 14
+roboflow:
+  license: CC BY 4.0
+  project: proximal-femur-fracture
+  url: https://universe.roboflow.com/thesisyolo-v8/proximal-femur-fracture/dataset/1
+  version: 1
+  workspace: thesisyolo-v8
+test: ../test/images
+train: ../train/images
+val: ../valid/images

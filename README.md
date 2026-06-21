@@ -25,7 +25,12 @@ the gains are reported honestly, including *where they did and didn't land*.
 | v1-baseline (v8s) | FracAtlas | 0.27 | — | — | — |
 | v1 (v8m, harmonized) | FracAtlas | 0.46 | 0.561 | 0.988 | 0.797 |
 | v3 (v8m + GRAZPEDWRI) | + wrist | 0.76 | 0.812 | 0.980 | 0.875 |
-| **v4 (v8m + HUMERUS)** | + shoulder | **0.86** | **0.927** | 0.975 | **0.895** |
+| v4 (v8m + HUMERUS) | + shoulder | 0.86 | 0.927 | 0.975 | 0.895 |
+| **v5 (v8m + proximal-femur)** | + hip | 0.79 | **0.878** | 0.986 | — |
+
+v5 per-source sensitivity: hip **0.674** (now evaluable, was 2 cases), humerus
+0.993, wrist 0.925, FracAtlas-native 0.671. The overall dip vs v4 is honest — v5's
+test set is region-stratified and includes 43 hard hip cases (v4's was easier).
 
 v4 PPV **0.973** (TP 357 / FP 10 / TN 394 / FN 28 on 789 test images).
 

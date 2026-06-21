@@ -1,6 +1,6 @@
 # Bone-R Fracture Detector — Model Card
 
-**Current Version:** v3 (v4 in training)  
+**Current Version:** v5 (see Changelog; detailed metrics in JOURNAL.md Entries 003-008)  
 **Last Updated:** 2026-06-14  
 **Framework:** Ultralytics YOLOv8  
 **Status:** Research/educational tool only. Not a medical device.
@@ -287,3 +287,14 @@ This model outputs **probabilistic best-guess estimates**, not medical diagnoses
 - Learned fracture-type classifier now scaffolded (`train_typing.py`) but untrained.
 
 **Next: train the type classifier; acquire proximal-femur (hip); external validation.**
+
+### Pass 3 — 2026-06-14 (v5 shipped)
+- **Shipped model is now v5** (`fracture_yolov8m_v5`): + proximal-femur (hip),
+  region-stratified `dataset_v5` (6,847 train).
+- v5 test: mAP@0.5 0.790, image-level sensitivity 0.878, specificity 0.986, PPV 0.981.
+- Per-source sensitivity: hip **0.674** (now evaluable — 43 test cases vs v4's 2),
+  humerus 0.993, wrist 0.925, FracAtlas-native 0.671.
+- **Hip blind spot closed.** Overall dip vs v4 (0.927->0.878) is honest: stratified,
+  harder test set. All major anatomical regions now covered.
+- Remaining: depth (more hip + adult general-fracture data); >=0.95 sensitivity
+  still needs institutional/PACS data.

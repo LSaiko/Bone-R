@@ -1,32 +1,21 @@
 {
-  "image": "000022_IMG0002414.png",
-  "width": 454,
-  "height": 373,
+  "image": "000110_IMG0002335.png",
+  "width": 819,
+  "height": 1024,
   "models": {
     "yolov8": {
       "color": "#00c800",
       "boxes": [
         {
           "xyxy": [
-            217.4,
-            167.9,
-            256.9,
-            192.1
+            596.6,
+            414.8,
+            681.0,
+            481.1
           ],
-          "conf": 0.7172,
+          "conf": 0.8078,
           "type": "localized/simple (best guess)",
           "severity": "moderate (best guess)"
-        },
-        {
-          "xyxy": [
-            216.2,
-            154.8,
-            257.1,
-            192.7
-          ],
-          "conf": 0.3643,
-          "type": "localized/simple (best guess)",
-          "severity": "low (best guess)"
         }
       ]
     },
@@ -35,36 +24,14 @@
       "boxes": [
         {
           "xyxy": [
-            229.5,
-            169.0,
-            255.4,
-            187.7
+            593.1,
+            407.9,
+            676.6,
+            477.9
           ],
-          "conf": 0.82,
+          "conf": 0.8906,
           "type": "localized/simple (best guess)",
-          "severity": "moderate (best guess)"
-        },
-        {
-          "xyxy": [
-            216.3,
-            173.3,
-            246.6,
-            190.8
-          ],
-          "conf": 0.7643,
-          "type": "localized/simple (best guess)",
-          "severity": "moderate (best guess)"
-        },
-        {
-          "xyxy": [
-            218.5,
-            174.8,
-            235.2,
-            191.4
-          ],
-          "conf": 0.4533,
-          "type": "localized/simple (best guess)",
-          "severity": "low (best guess)"
+          "severity": "high (best guess)"
         }
       ]
     },
@@ -73,23 +40,12 @@
       "boxes": [
         {
           "xyxy": [
-            234.3,
-            167.4,
-            256.2,
-            188.9
+            593.3,
+            405.5,
+            675.5,
+            479.7
           ],
-          "conf": 0.9995,
-          "type": "localized/simple (best guess)",
-          "severity": "high (best guess)"
-        },
-        {
-          "xyxy": [
-            217.7,
-            175.8,
-            234.8,
-            192.6
-          ],
-          "conf": 0.999,
+          "conf": 0.9997,
           "type": "localized/simple (best guess)",
           "severity": "high (best guess)"
         }

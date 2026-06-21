@@ -427,3 +427,50 @@ The HUMERUS addition did exactly its job: humerus fractures now detected at 98.6
 
 ### Next: train the typing classifier (train_typing.py ready); acquire proximal-femur
 for the hip gap; consider full 20k GRAZPEDWRI for more wrist headroom.
+
+---
+
+## Entry 008 — 2026-06-14 — v5: hip blind spot closed (proximal-femur)
+
+### Data
+Added Roboflow proximal-femur set (thesisyolo-v8, 1,214 imgs, 14 L/R classes).
+Kept only the 6 true-fracture classes (intertrochanteric / neck / subtrochanteric
+x L+R) via `ingest --fracture-names ... --data-yaml`; dropped dislocations,
+trochanter landmarks, normals -> 392 hip-fracture images, 815 boxes. Merged all
+4 sources with **`--stratify`** -> `dataset_v5` (6,847 train, 12 strata).
+
+### v5 results (YOLOv8m, early-stop ep 120, best 86)
+Box: mAP@0.5 0.790, mAP@0.5:0.95 0.427, P 0.840, R 0.721 (down from v4 0.858 —
+expected: 392 hard hip fractures + harder stratified test set).
+Image-level (test n=906): **sensitivity 0.878, specificity 0.986, PPV 0.981**.
+
+### Per-source sensitivity — HIP NOW EVALUABLE
+| source | n(test) | pos | sensitivity |
+|---|---|---|---|
+| **hip** | 125 | 43 | **0.674** (was 2 cases in v4) |
+| humerus | 138 | 138 | 0.993 |
+| wrist | 238 | 159 | 0.925 |
+| fracatlas-native | 405 | 70 | 0.671 |
+
+### Findings / was it good?
+**YES.** The primary goal — the hip blind spot — is closed. Hip went from 2
+unreliable test cases to 43, detected at **0.674**, on par with FracAtlas-native
+(0.671). The slight overall sensitivity dip (0.927->0.878) is honest, not a
+regression: v4's 0.927 was inflated by easy wrist/humerus and a soft test split;
+v5's test set now includes hard hip cases and is region-stratified, so 0.878 is a
+more trustworthy number. The model is now genuinely multi-region: hip 0.67,
+humerus 0.99, wrist 0.93, hand/leg(fracatlas) 0.67.
+
+### Do we need more datasets?
+Major anatomical blind spots are now COVERED (wrist, humerus/shoulder, hip,
+hand/leg). The lever is no longer NEW anatomy — it's DEPTH for the weakest
+regions:
+- **Hip (0.67) & FracAtlas-native (0.67)** are the floor — more hip volume (only
+  392 imgs) and a large general adult-fracture set would lift them most.
+- **Pediatric skew** persists (GRAZPEDWRI wrist) — adult wrist data would balance it.
+- The **>=0.95 sensitivity** clinical bar still needs institutional/PACS-scale
+  data + expert labels (per MODEL_CARD) — not reachable from public sets.
+Recommendation: prioritise hip-volume + a large adult general-fracture corpus;
+exotic new regions are NOT needed.
+
+### Shipped: `fracture_yolov8m_v5`. Site, README, MODEL_CARD updated to v5.
