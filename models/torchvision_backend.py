@@ -39,7 +39,8 @@ class _TorchvisionDetector(Detector):
     def __init__(self, model, weights: str | None):
         self.device = _device()
         if weights:
-            state = torch.load(weights, map_location=self.device)
+            # weights_only=True: refuse arbitrary pickle code (it's a state_dict).
+            state = torch.load(weights, map_location=self.device, weights_only=True)
             model.load_state_dict(state.get("model", state))
         self.model = model.to(self.device).eval()
 
