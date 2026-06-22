@@ -50,6 +50,10 @@ three trained + tested on identical data):
 | RetinaNet R50-FPNv2 | 0.240 | 0.072 | 0.188 |
 
 **Honest limitations** (full analysis in [JOURNAL.md](JOURNAL.md)):
+- **Poor out-of-distribution generalization** — on an unseen source (pkdarabi)
+  external sensitivity is **0.30 vs 0.67 in-distribution** (Entry 009). In-set
+  metrics overstate real-world performance; this is an in-domain demo, not
+  deployable. Run it yourself: `python scripts/external_val.py`.
 - Gains are **region-specific**: v4 detects humerus (0.986) and wrist (0.961)
   fractures far better than FracAtlas-native ones (**0.712**) — the headline
   sensitivity is lifted by the easier added distributions.

@@ -46,7 +46,7 @@
 ### Explicitly Out-of-Scope / Prohibited
 - ❌ **NOT a medical device.** Not intended for independent diagnosis, treatment decisions, or clinical deployment
 - ❌ **NOT autonomous clinical decision support.** Outputs must be reviewed by a qualified radiologist
-- ❌ **NOT validated for real-world clinical use.** Trained on public research datasets; no external validation on diverse patient populations or scanner modalities
+- ❌ **NOT validated for real-world clinical use.** External validation WAS run (pkdarabi, unseen source) and showed **poor generalization — sensitivity 0.30 vs 0.67 in-distribution** (see Changelog Pass 4). The model is an in-domain demo, not deployable.
 - ❌ **NOT for fracture typing.** Type/severity outputs are heuristic-only (box aspect ratio + area), not learned classifiers
 - ❌ **NOT for trauma triage.** Does not rank fracture priority or urgency
 - ❌ **NOT for prognosis or follow-up.** Cannot predict healing outcomes or complications
@@ -298,3 +298,13 @@ This model outputs **probabilistic best-guess estimates**, not medical diagnoses
   harder test set. All major anatomical regions now covered.
 - Remaining: depth (more hip + adult general-fracture data); >=0.95 sensitivity
   still needs institutional/PACS data.
+
+### Pass 4 — 2026-06-14 (external validation)
+- **External validation added** (`scripts/external_val.py`): v5 tested on pkdarabi
+  (1,129 imgs, never in detector training) -> **sensitivity 0.300 vs 0.671
+  in-distribution** (~2.2x drop).
+- **Critical limitation:** in-set metrics (overall 0.878) materially overstate
+  real-world performance. The model generalizes POORLY out-of-distribution and is
+  an in-domain demo only — NOT deployable. Closing the gap requires multi-source
+  training + a standing held-out external test.
+- Ruled out: train/serve CLAHE mismatch is negligible (raw 0.287 vs CLAHE 0.300).

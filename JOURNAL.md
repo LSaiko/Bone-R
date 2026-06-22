@@ -474,3 +474,33 @@ Recommendation: prioritise hip-volume + a large adult general-fracture corpus;
 exotic new regions are NOT needed.
 
 ### Shipped: `fracture_yolov8m_v5`. Site, README, MODEL_CARD updated to v5.
+
+---
+
+## Entry 009 — 2026-06-14 — External validation: the generalization gap is real
+
+Tested shipped v5 on **pkdarabi** (1,129 multi-region fracture images) — a source
+the DETECTOR never trained on (it was only used for the typing classifier). New
+reusable harness: `scripts/external_val.py`.
+
+| test | sensitivity |
+|---|---|
+| in-distribution (v5 fracatlas-native) | 0.671 |
+| **external (pkdarabi, never seen)** | **0.300** |
+
+**Finding: ~2.2x sensitivity drop out-of-distribution.** The model catches only
+~30% of fractures on an unseen source. This is the gap the "no external
+validation" blindspot was hiding — in-set metrics (0.88 overall) materially
+overstate real-world performance.
+
+Caveats: pkdarabi images are type-classification crops (framing differs from full
+radiographs) and include hard subtypes (hairline/avulsion), so part of the drop
+is distribution shift in image *style*, not only fracture appearance — but a
+drop this large is the honest headline.
+
+Ruled out: train/serve CLAHE mismatch is NOT a factor — raw (serve-path) 0.287
+vs harmonized 0.300, ~1pp. No inference fix needed.
+
+**Implication:** the model is a useful in-domain demo, NOT deployable. Closing
+this needs multi-source training + a held-out external test as a standing metric,
+not more same-distribution data. Updated MODEL_CARD limitations.
