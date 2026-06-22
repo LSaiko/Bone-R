@@ -1,12 +1,14 @@
-# Bone-R — Bone Fracture Detection (FracAtlas + MURA → YOLOv8)
+# Bone-R — Bone Fracture Detection (multi-dataset → YOLOv8)
 
 [![Site Data Validation](https://github.com/lsaiko/Bone-R/actions/workflows/site-data.yml/badge.svg)](https://github.com/lsaiko/Bone-R/actions/workflows/site-data.yml)
 
-End-to-end pipeline to detect, localize, and roughly characterize bone
-fractures on X-rays. **FracAtlas** provides true bounding-box annotations for
-detection; **MURA** provides large-scale image-level (abnormal/normal) labels
-for robustness via co-training / pre-training. The two datasets can be used
-separately or together.
+End-to-end pipeline to detect and localize bone fractures on X-rays. The shipped
+**v5** detector is trained on four merged box-annotated sources — **FracAtlas**
+(multi-region), **GRAZPEDWRI-DX** (wrist), **HUMERUS** (shoulder), and
+**proximal-femur** (hip) — built up one region at a time to close blind spots
+(see [JOURNAL.md](JOURNAL.md)). **MURA** was tested as an abnormality-classifier
+ensemble and **rejected** (a documented negative result — its "abnormal" label
+isn't fracture-specific).
 
 > ⚠️ Research/educational tool only. Outputs are "best guess" estimates and are
 > **not** a medical diagnosis. Always recommend a qualified orthopedic consult.
@@ -78,37 +80,46 @@ app/main.py                    FastAPI /detect endpoint (+ Google Maps consult)
 
 ## Quickstart
 
+This reproduces the **shipped v5** model (FracAtlas + GRAZPEDWRI + HUMERUS +
+proximal-femur). Each external set is acquired via Roboflow/Kaggle (see
+`analysis/data_sourcing_log.md`); paths below assume they're downloaded.
+
 ```bash
 pip install -r requirements.txt
 
-# 1. FracAtlas: COCO -> YOLO labels written next to each image
+# 1. FracAtlas COCO -> YOLO labels, then harmonize (CLAHE, repair, resize)
 python scripts/fracatlas_to_yolo.py
+python scripts/preprocess.py --src FracAtlas/images --out FracAtlas_proc
 
-# 2. (optional) MURA classification manifest for co-training robustness
-python scripts/mura_to_yolo.py --mode classify --out MURA_cls
-#    ...or weak full-frame detection labels to augment FracAtlas:
-# python scripts/mura_to_yolo.py --mode weakbox
+# 2. Ingest each external set to single-class fracture, then harmonize.
+#    Class selection is per-dataset (see ingest --help): GRAZPEDWRI by index,
+#    HUMERUS all-fracture, hip by name (drops landmarks/normals).
+python scripts/ingest_grazpedwri.py --images GRAZ_rf --labels GRAZ_rf \
+    --out GRAZ_bone_r --fracture-class 2 --copy
+python scripts/preprocess.py --src GRAZ_bone_r --out GRAZ_proc
+#    ...repeat for HUMERUS (--all-fracture) and hip; or just use run_v5.py.
 
-# 3. Build train/val/test detection tree (FracAtlas only, or add MURA)
-python scripts/make_splits.py --src FracAtlas/images --out dataset
-# python scripts/make_splits.py --src FracAtlas/images --src MURA --out dataset
+# 3. Region-stratified merge -> dataset_v5 (hip/shoulder in every split)
+python scripts/make_splits.py --src FracAtlas_proc --src GRAZ_proc \
+    --src HUMERUS_proc --src HIP_proc --out dataset_v5 --copy --stratify
 
-# 4. Train
-python train.py --model yolov8s.pt --data dataset.yaml --epochs 50 --imgsz 640
-#    (or: yolo detect train model=yolov8s.pt data=dataset.yaml epochs=50)
+# 4. Train YOLOv8m
+python train.py --model yolov8m.pt --data dataset_v5.yaml \
+    --epochs 150 --imgsz 800 --batch 8 --name fracture_yolov8m_v5
 
-# 5. Evaluate — standard mAP + the screening-oriented sensitivity metric
-python evaluate.py --weights runs/detect/fracture_yolov8s/weights/best.pt \
-    --target-recall 0.95
+# --- or do steps 2-4 in one command (acquires the hip set too): ---
+# python scripts/run_v5.py --roboflow-key KEY --fracture-names \
+#   "left-intertrochanteric,right-intertrochanteric,left-neck,right-neck,left-subtrochanteric,right-subtrochanteric"
 
-# 6. Visualize predictions
-python visualize.py --weights runs/detect/fracture_yolov8s/weights/best.pt \
-    --image xray.png --out prediction.png --conf 0.25
+# 5. Evaluate — mAP + screening sensitivity + per-region + per-source
+python evaluate.py --weights runs/detect/fracture_yolov8m_v5/weights/best.pt \
+    --data dataset_v5.yaml --data-root dataset_v5 --split test --target-recall 0.90
 
-# 7. Serve the API
-export FRACTURE_WEIGHTS=runs/detect/fracture_yolov8s/weights/best.pt
-export GOOGLE_MAPS_API_KEY=...        # optional, for orthopedic-consult lookup
-uvicorn app.main:app --reload --port 8000
+# 6. Visualize / serve
+python visualize.py --weights runs/detect/fracture_yolov8m_v5/weights/best.pt \
+    --image xray.png --out prediction.png
+export FRACTURE_WEIGHTS=runs/detect/fracture_yolov8m_v5/weights/best.pt
+uvicorn app.main:app --port 8000   # /detect?mode=screening for high recall
 ```
 
 ### API example

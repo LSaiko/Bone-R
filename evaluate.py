@@ -155,6 +155,30 @@ def region_of(filename: str, csv_index: Dict[str, str]) -> str:
     return csv_index.get(stem, "unknown")
 
 
+def source_of(filename: str) -> str:
+    """Tag a test image by its origin dataset from the filename alone.
+
+    The merged training set mixes four sources whose images carry distinctive
+    name patterns. This lets evaluate report per-source sensitivity (the
+    project's core honesty metric: FracAtlas-native is the real-world floor,
+    wrist/humerus/hip are the easier added regions) without needing the source
+    dirs present at eval time.
+
+    ponytail: pattern-based tag, order matters (HUMERUS names contain 'Img').
+    If a new source is added, extend the patterns or switch to a built manifest.
+    """
+    s = filename.lower()
+    if "wri" in s:                                   # GRAZPEDWRI pediatric wrist
+        return "wrist"
+    if "anonim" in s:                                # HUMERUS shoulder set
+        return "humerus"
+    if any(k in s for k in ("intertrochanteric", "subtrochanteric", "neck")):
+        return "hip"                                 # proximal-femur
+    if "img" in s:                                   # FracAtlas IMG####
+        return "fracatlas"
+    return "other"
+
+
 # ---------------------------------------------------------------------------
 # Image-level prediction gathering (requires model — guarded separately)
 # ---------------------------------------------------------------------------
@@ -343,6 +367,22 @@ def main() -> None:
         print(f"  {region:<10s}  n={n_total:4d}  pos={n_pos:4d}  "
               f"sensitivity={sens_str}  "
               f"TP={int(rs['TP'])}  FN={int(rs['FN'])}")
+
+    # ------------------------------------------------------------------
+    # 5. Per-source breakdown (which dataset each region of skill came from)
+    # ------------------------------------------------------------------
+    print(f"\n=== Per-source image-level sensitivity ===")
+    source_indices: Dict[str, List[int]] = defaultdict(list)
+    for idx, fname in enumerate(filenames):
+        source_indices[source_of(fname)].append(idx)
+    for src in sorted(source_indices.keys()):
+        idxs = source_indices[src]
+        ss = image_level_stats([y_true[i] for i in idxs],
+                                [y_pred[i] for i in idxs])
+        sens = ss["sensitivity"]
+        sens_str = f"{sens:.4f}" if sens == sens else "  N/A "
+        print(f"  {src:<10s}  n={len(idxs):4d}  pos={int(sum(y_true[i] for i in idxs)):4d}  "
+              f"sensitivity={sens_str}")
 
 
 if __name__ == "__main__":

@@ -165,25 +165,23 @@ def test_region_shoulder_and_mixed():
     assert region_of("000030_IMG0000030.jpg", idx) == "mixed"
 
 
+def test_source_of():
+    from evaluate import source_of
+    assert source_of("000022_IMG0002414.png") == "fracatlas"
+    assert source_of("000033_x_WRI-L1_M007.rf.h.png") == "wrist"
+    assert source_of("000987_Anonim110-Seq1-Ser1-Img1.rf.h.png") == "humerus"  # has 'Img'
+    assert source_of("000110_intertrochanteric_51_png.rf.h.png") == "hip"
+    assert source_of("000110_neck_62_png.rf.h.png") == "hip"
+    assert source_of("random.png") == "other"
+
+
 # ---------------------------------------------------------------------------
-# Runner
+# Runner — auto-discovers every test_* in this module (no list to maintain)
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    tests = [
-        test_perfect_classifier,
-        test_all_wrong,
-        test_mixed,
-        test_all_positive_gt,
-        test_all_negative_gt,
-        test_single_true_positive,
-        test_length_mismatch_raises,
-        test_region_prefixed_filename,
-        test_region_unprefixed_filename,
-        test_region_unknown_id,
-        test_region_no_extension,
-        test_region_shoulder_and_mixed,
-    ]
+    tests = [v for k, v in sorted(globals().items())
+             if k.startswith("test_") and callable(v)]
 
     passed = 0
     failed = 0
