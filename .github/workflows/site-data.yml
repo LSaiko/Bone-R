@@ -109,7 +109,7 @@ jobs:
       - name: Regenerate benchmark.json
         run: |
           python benchmark.py \
-            --data dataset.yaml \
+            --data dataset_v5.yaml \
             --model yolov8=weights/yolov8/best.pt \
             --model retinanet=weights/retinanet.pt \
             --model fasterrcnn=weights/fasterrcnn.pt \

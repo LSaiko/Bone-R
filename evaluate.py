@@ -22,8 +22,8 @@ Reports the standard detection metrics plus clinically-motivated ones:
 Usage
 -----
     python evaluate.py --weights runs/detect/fracture_yolov8s/weights/best.pt
-    python evaluate.py --weights best.pt --data dataset_v2.yaml \\
-        --data-root dataset_v2 --split test --target-recall 0.90
+    python evaluate.py --weights best.pt --data dataset_v5.yaml \\
+        --data-root dataset_v5 --split test --target-recall 0.90
 """
 
 from __future__ import annotations
@@ -242,9 +242,9 @@ def main() -> None:
     )
     ap.add_argument("--weights", required=True,
                     help="Path to trained weights (.pt)")
-    ap.add_argument("--data", default="dataset_v2.yaml",
-                    help="YOLO dataset YAML (default: dataset_v2.yaml)")
-    ap.add_argument("--data-root", default="dataset_v2",
+    ap.add_argument("--data", default="dataset_v5.yaml",
+                    help="YOLO dataset YAML (default: dataset_v5.yaml)")
+    ap.add_argument("--data-root", default="dataset_v5",
                     help="Dataset root directory containing images/ and labels/ "
                          "(default: dataset_v2)")
     ap.add_argument("--split", default="test",

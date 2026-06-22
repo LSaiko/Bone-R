@@ -6,7 +6,7 @@ Each backend must have a fine-tuned checkpoint; pass them as name=weights pairs.
 
 Usage
 -----
-    python benchmark.py --data dataset.yaml \
+    python benchmark.py --data dataset_v5.yaml \
         --model yolov8=runs/detect/fracture_yolov8s/weights/best.pt \
         --model retinanet=retinanet_fracture.pt \
         --model fasterrcnn=fasterrcnn_fracture.pt \
@@ -65,8 +65,8 @@ def eval_torchvision(arch: str, weights: str, data_root: Path) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", default="dataset.yaml", help="YOLO data yaml")
-    ap.add_argument("--data-root", default="dataset", type=Path)
+    ap.add_argument("--data", default="dataset_v5.yaml", help="YOLO data yaml")
+    ap.add_argument("--data-root", default="dataset_v5", type=Path)
     ap.add_argument("--model", action="append", default=[],
                     help="name=weights (name in yolov8|fasterrcnn|retinanet|fcos)")
     ap.add_argument("--out", default="docs/data/benchmark.json", type=Path)

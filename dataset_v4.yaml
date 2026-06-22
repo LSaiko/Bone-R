@@ -1,9 +1,0 @@
-# YOLO dataset config for the Phase-1 harmonized split (CLAHE + repaired +
-# label-safe resized images). Mirrors dataset.yaml but points at dataset_v4.
-path: dataset_v4
-train: images/train
-val: images/val
-test: images/test
-
-names:
-  0: fracture

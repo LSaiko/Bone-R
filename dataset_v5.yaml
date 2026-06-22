@@ -1,6 +1,9 @@
+# YOLO dataset config for the shipped v5 split:
+# FracAtlas + GRAZPEDWRI + HUMERUS + proximal-femur, region-stratified.
 path: dataset_v5
 train: images/train
 val: images/val
 test: images/test
+
 names:
   0: fracture
