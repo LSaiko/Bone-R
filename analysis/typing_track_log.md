@@ -432,3 +432,40 @@ too poor to crop reliably. Not pursued.
 
 **Standing recommendation unchanged:** whole-image classifier; the real lever is
 a medical-pretrained backbone (RadImageNet) + more diverse typed data, not crops.
+
+---
+
+## Pass 8 — 2026-06-14 — RadImageNet backbone: NEGATIVE (worse than incumbent)
+
+Tested ResNet50 with RadImageNet vs ImageNet pretrain (clean A/B, same trainer,
+same typing_dataset_v2 / 62-img test). New script: `scripts/train_typing_resnet.py`.
+RadImageNet weights: Lab-Rasool/RadImageNet ResNet50.pt (loaded weights_only=True).
+
+| model | test top-1 |
+|---|---|
+| yolov8s-cls (incumbent) | **0.66** |
+| ImageNet ResNet50 | 0.61 |
+| RadImageNet ResNet50 | 0.50 |
+
+**Both ResNet50 arms LOST to the incumbent; RadImageNet lost to ImageNet.**
+
+Caveats: (1) the Lab-Rasool port's exact preprocessing/normalisation is
+undocumented — I used ImageNet norm, which likely disadvantages RadImageNet
+(its Keras original used caffe-mode BGR mean-subtraction). So 0.50 is probably
+unfairly low. BUT (2) even the unconfounded ImageNet-ResNet50 (0.61) lost to
+yolov8s-cls (0.66) — so the ResNet50 arch + a plain hand-rolled trainer is the
+bottleneck, not just RadImageNet's norm. Ultralytics' tuned cls augmentation/
+schedule beats my minimal loop.
+
+**Verdict: do NOT adopt RadImageNet/ResNet50.** Keep yolov8s-cls. The lever
+remains more diverse typed DATA, not backbone/pretrain swaps. A definitive
+RadImageNet test would need the port's exact preprocessing — low priority given
+even the fair ImageNet arm underperformed.
+
+### Pass 8 addendum — fair RadImageNet rerun (caffe preprocessing)
+Applied RadImageNet's actual preprocessing (RGB->BGR, ImageNet BGR mean-subtract,
+no [0,1] scaling). Result: **0.484** — even worse than the ImageNet-norm run (0.50).
+So the underperformance is NOT a normalisation artifact: RadImageNet genuinely
+transfers worse than ImageNet for extremity-fracture X-rays (RadImageNet's
+pretraining is CT/MR/US-heavy with little plain-film extremity data). **Verdict
+is now definitive: do not use RadImageNet here.** yolov8s-cls (0.66) stays.
