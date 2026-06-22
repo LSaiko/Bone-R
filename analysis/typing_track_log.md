@@ -409,3 +409,26 @@ trivially easy single-region humerus).
 `runs/classify/fracture_type_cls_v2` (experimental, license-caveated).
 **Next:** confirm pkdarabi license; grow transverse (still humerus-only — needs a
 true transverse source); consider a richer 10-class model on pkdarabi's full set.
+
+---
+
+## Pass 7 — 2026-06-14 — Detect-crop-classify: NEGATIVE (no gain)
+
+Hypothesis: classifying a tight crop of the fracture box beats whole-image
+(removes background noise). Controlled test on HUMERUS (GT type-boxes), same 1420
+images, same config, same 32-img test:
+
+| input | top-1 |
+|---|---|
+| whole-image | **0.781** |
+| crop (GT box +20% pad) | 0.750 |
+
+**Refuted.** Crop helped segmental/transverse, hurt oblique/spiral, net slightly
+worse (within 32-img noise). Reason: HUMERUS images are already bone-tight, so
+cropping discards useful surrounding-bone context without cutting much noise. The
+premise only holds for multi-region radiographs where the bone is a small frame
+fraction (pkdarabi) — but those lack GT boxes and detector recall there is 0.30,
+too poor to crop reliably. Not pursued.
+
+**Standing recommendation unchanged:** whole-image classifier; the real lever is
+a medical-pretrained backbone (RadImageNet) + more diverse typed data, not crops.
